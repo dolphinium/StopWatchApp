@@ -11,6 +11,25 @@ class StopWatchState extends State<StopWatch>{
   late int seconds;
   late Timer timer;
 
+  bool isTicking = true;
+
+  void _startTimer(){
+    timer = Timer.periodic(Duration(seconds: 1),_onTick);
+
+
+    setState(() {
+      seconds = 0;
+      isTicking = true;
+    });
+  }
+
+  void _stopTimer(){
+    timer.cancel();
+    setState(() {
+      isTicking = false;
+    });
+  }
+
   @override
   void initState(){
     super.initState();
@@ -34,16 +53,47 @@ class StopWatchState extends State<StopWatch>{
 
   @override
   Widget build(BuildContext context){
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Stopwatch"),
       ),
-      body: Center(
-        child: Text(
-          '$seconds ${_secondsText()}',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children:<Widget>[
+          Text("$seconds ${_secondsText()}",
+          style: Theme.of(context).textTheme.headlineMedium,),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children:<Widget> [
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty
+                      .all<Color>(Colors.green),
+                  foregroundColor: MaterialStateProperty
+                    .all<Color>(Colors.white),
+                ),
+                child: Text("Start"),
+                onPressed: isTicking ? null : _startTimer,
+              ),
+              const SizedBox(width: 20,),
+              TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty
+                      .all<Color>(Colors.red),
+                  foregroundColor: MaterialStateProperty
+                    .all<Color>(Colors.white),
+
+                ),
+                child: Text("Stop"),
+                onPressed: isTicking ? _stopTimer : null,
+              )
+            ],
+          )
+
+        ] ,
+      )
     );
   }
 }
