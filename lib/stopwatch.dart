@@ -8,18 +8,24 @@ class StopWatch extends StatefulWidget{
 
 
 class StopWatchState extends State<StopWatch>{
-  late int seconds;
+  late int milliseconds;
   late Timer timer;
-
+  final laps = <int>[];
   bool isTicking = true;
 
-  void _startTimer(){
-    timer = Timer.periodic(Duration(seconds: 1),_onTick);
-
-
+  void _lap(){
     setState(() {
-      seconds = 0;
+      laps.add(milliseconds);
+      milliseconds = 0;
+    });
+  }
+
+  void _startTimer(){
+    timer = Timer.periodic(Duration(milliseconds: 100),_onTick);
+    setState(() {
+      milliseconds = 0;
       isTicking = true;
+      laps.clear();
     });
   }
 
@@ -33,17 +39,36 @@ class StopWatchState extends State<StopWatch>{
   @override
   void initState(){
     super.initState();
-
-    seconds = 0;
+    AppLifecycleListener(
+      onPause: () => debugPrint("app is paused at ${DateTime.now()}"),
+      onResume: () => debugPrint("app is resuming to process from ${DateTime.now()}")
+    );
+    milliseconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), _onTick);
   }
   void _onTick(Timer time){
     setState(() {
-      ++seconds;
+      milliseconds += 100;
     });
   }
 
-  String _secondsText() => seconds == 1 ? 'second':"seconds";
+  String _secondsText(int milliseconds){
+    final seconds = milliseconds / 1000;
+    return '$seconds seconds';
+  }
+
+
+  Widget _buildLapDisplay(){
+    return ListView(
+      children: [
+        for(int milliseconds in laps)
+          ListTile(
+            title: Text(_secondsText(milliseconds)),
+          )
+      ],
+    );
+  }
+
 
   @override
   void dispose(){
@@ -51,18 +76,41 @@ class StopWatchState extends State<StopWatch>{
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context){
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Stopwatch"),
+        title: const Text("Stopwatch"),
       ),
       body: Column(
+        children:<Widget> [
+          Expanded(child: _buildCounter(context)),
+          Expanded(child: _buildLapDisplay())
+        ],
+      )
+    );
+  }
+
+  Widget _buildCounter(BuildContext context){
+    return Container(
+      color: Theme.of(context).primaryColor,
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children:<Widget>[
-          Text("$seconds ${_secondsText()}",
-          style: Theme.of(context).textTheme.headlineMedium,),
+          Text("Lap ${laps.length + 1}",
+            style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(color:Colors.white),
+            ),
+          Text(
+            _secondsText(milliseconds),
+            style: Theme.of(context)
+            .textTheme
+            .headlineSmall
+            ?.copyWith(color:Colors.white),
+          ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -72,22 +120,30 @@ class StopWatchState extends State<StopWatch>{
                   backgroundColor: MaterialStateProperty
                       .all<Color>(Colors.green),
                   foregroundColor: MaterialStateProperty
-                    .all<Color>(Colors.white),
+                      .all<Color>(Colors.white),
                 ),
                 child: Text("Start"),
                 onPressed: isTicking ? null : _startTimer,
               ),
               const SizedBox(width: 20,),
+              ElevatedButton(
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty
+                        .all<Color>(Colors.yellow)
+                ),
+                child: Text("Lap"),
+                onPressed: isTicking ? _lap :null,
+              ),
+              const SizedBox(width: 20),
               TextButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty
                       .all<Color>(Colors.red),
                   foregroundColor: MaterialStateProperty
-                    .all<Color>(Colors.white),
-
+                      .all<Color>(Colors.white),
                 ),
-                child: Text("Stop"),
                 onPressed: isTicking ? _stopTimer : null,
+                child: const Text("Stop"),
               )
             ],
           )
