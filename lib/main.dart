@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
-import 'stopwatch.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stopwatch/progress_task.dart';
 
-void main() => runApp(StopwatchApp());
+void main() => runApp(const ProviderScope(child: MyApp()));
 
-class StopwatchApp extends StatelessWidget{
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return MaterialApp(
-      home: StopWatch(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const ProgressPage(),
     );
   }
 }
